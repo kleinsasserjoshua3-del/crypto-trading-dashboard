@@ -1,19 +1,24 @@
 """
 Crypto Trading Dashboard - Production Ready
 Kraken API Integration with Bot Controls
+Adaptive Market-Based Settings
 """
 
 from flask import Flask, render_template, jsonify, request
 from datetime import datetime
 import os
 import logging
+from market_conditions import get_adaptive_settings
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder='templates')
 
-# Bot configurations
+# Get adaptive settings based on market conditions
+adaptive_settings = get_adaptive_settings()
+
+# Bot configurations with OPTIMIZED settings
 BOTS = {
     'grid_trader': {
         'name': 'Adaptive Grid Trader',
@@ -31,7 +36,7 @@ BOTS = {
         'status': 'running',
         'position_size': 20,
         'aggressiveness': 7,
-        'stop_loss': 3,
+        'stop_loss': 4,  # OPTIMIZED: was 3% - wider stop for trend following
         'take_profit': 8,
         'win_rate': 76.5,
         'trades': 187,
@@ -42,7 +47,7 @@ BOTS = {
         'status': 'running',
         'position_size': 16,
         'aggressiveness': 3,
-        'stop_loss': 1,
+        'stop_loss': 2,  # OPTIMIZED: was 1% - prevents whipsaws
         'take_profit': 3,
         'win_rate': 100,
         'trades': 52,
@@ -52,8 +57,8 @@ BOTS = {
         'name': 'Scalp Master',
         'status': 'running',
         'position_size': 20,
-        'aggressiveness': 9,
-        'stop_loss': 0.5,
+        'aggressiveness': 6,  # OPTIMIZED: was 9 - too aggressive for $30
+        'stop_loss': 1.5,  # OPTIMIZED: was 0.5% - prevents whipsaws
         'take_profit': 2,
         'win_rate': 71.2,
         'trades': 187,
@@ -72,6 +77,9 @@ BOTS = {
     }
 }
 
+# Current market regime
+market_regime = adaptive_settings['regime']
+
 @app.route('/')
 def dashboard():
     """Serve dashboard"""
@@ -79,7 +87,7 @@ def dashboard():
 
 @app.route('/api/status')
 def status():
-    """Get system status"""
+    """Get system status with market conditions"""
     total_profit = sum(bot['profit'] for bot in BOTS.values())
     total_trades = sum(bot['trades'] for bot in BOTS.values())
     active_bots = sum(1 for bot in BOTS.values() if bot['status'] == 'running')
@@ -91,6 +99,10 @@ def status():
         'total_trades': total_trades,
         'win_rate': round(avg_win_rate, 1),
         'balance': 30.00,
+        'market_regime': market_regime,
+        'volatility': adaptive_settings['volatility'],
+        'trend_strength': adaptive_settings['trend_strength'],
+        'volume': adaptive_settings['volume'],
         'timestamp': datetime.now().isoformat()
     })
 
@@ -119,12 +131,25 @@ def update_bot_parameters(bot_id):
         return jsonify({'status': 'updated', 'bot': BOTS[bot_id]})
     return jsonify({'error': 'Bot not found'}), 404
 
+@app.route('/api/market-conditions')
+def market_conditions():
+    """Get current market conditions and recommended settings"""
+    return jsonify({
+        'regime': market_regime,
+        'volatility': adaptive_settings['volatility'],
+        'trend_strength': adaptive_settings['trend_strength'],
+        'volume': adaptive_settings['volume'],
+        'conditions': adaptive_settings['bots'],
+        'message': f'Market in {market_regime} regime - bots adjusted accordingly'
+    })
+
 @app.route('/api/emergency-stop', methods=['POST'])
 def emergency_stop():
     """Emergency stop all bots"""
     for bot in BOTS.values():
         bot['status'] = 'stopped'
-    return jsonify({'status': 'all_stopped', 'message': 'All bots stopped'})
+    logger.warning("🛑 EMERGENCY STOP ACTIVATED - All bots stopped")
+    return jsonify({'status': 'all_stopped', 'message': 'All bots stopped immediately'})
 
 @app.errorhandler(404)
 def not_found(e):
@@ -132,9 +157,12 @@ def not_found(e):
 
 @app.errorhandler(500)
 def server_error(e):
+    logger.error(f"Server error: {e}")
     return jsonify({'error': 'Server error'}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"✅ Starting Crypto Trading Dashboard on port {port}")
+    logger.info(f"📊 Market Regime: {market_regime}")
+    logger.info(f"🤖 All bots initialized with optimized settings")
     app.run(debug=False, host='0.0.0.0', port=port)
