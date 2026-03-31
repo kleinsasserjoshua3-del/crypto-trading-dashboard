@@ -83,7 +83,7 @@ market_regime = adaptive_settings['regime']
 @app.route('/')
 def dashboard():
     """Serve dashboard"""
-    return render_template('dashboard.html')
+    return render_template('dashboard_v2.html')
 
 @app.route('/api/status')
 def status():

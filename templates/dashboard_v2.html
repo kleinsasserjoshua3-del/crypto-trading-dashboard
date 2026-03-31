@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Trading Dashboard - Kraken</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(0,255,100,0.3);
+        }
+        
+        h1 {
+            font-size: 28px;
+            color: #00ff64;
+            text-shadow: 0 0 10px rgba(0,255,100,0.5);
+        }
+        
+        .status-indicator {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+            border: 1px solid rgba(0,255,100,0.2);
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff64;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(0,255,100,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            color: #00ff64;
+            font-weight: bold;
+        }
+        
+        .emergency-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,0,0,0.1);
+            border: 2px solid rgba(255,0,0,0.5);
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .emergency-btn {
+            background: #ff0000;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .emergency-btn:hover {
+            background: #cc0000;
+            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+        }
+        
+        .section-title {
+            font-size: 20px;
+            color: #00ff64;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(0,255,100,0.3);
+        }
+        
+        .bot-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .bot-option {
+            padding: 15px;
+            background: rgba(0,0,0,0.4);
+            border: 2px solid rgba(0,255,100,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .bot-option:hover {
+            border-color: rgba(0,255,100,0.6);
+            background: rgba(0,255,100,0.1);
+        }
+        
+        .bot-option.active {
+            border-color: #00ff64;
+            background: rgba(0,255,100,0.2);
+            box-shadow: 0 0 15px rgba(0,255,100,0.4);
+        }
+        
+        .bot-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ff64;
+            margin-bottom: 5px;
+        }
+        
+        .bot-description {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .bot-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .config-card {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(0,255,100,0.3);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .config-title {
+            font-size: 16px;
+            color: #00ff64;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .config-item {
+            margin-bottom: 15px;
+        }
+        
+        .config-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .config-value {
+            font-size: 14px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(0,255,100,0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00ff64;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,255,100,0.5);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #00ff64;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(0,255,100,0.5);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-start {
+            background: #00ff64;
+            color: #000;
+        }
+        
+        .btn-start:hover {
+            background: #00cc52;
+            box-shadow: 0 0 15px rgba(0,255,100,0.5);
+        }
+        
+        .btn-stop {
+            background: #ff6b6b;
+            color: #fff;
+        }
+        
+        .btn-stop:hover {
+            background: #ff5252;
+        }
+        
+        .btn-reset {
+            background: #4a90e2;
+            color: #fff;
+        }
+        
+        .btn-reset:hover {
+            background: #357abd;
+        }
+        
+        .bot-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .status-card {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(0,255,100,0.3);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .bot-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #00ff64;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-badge.running {
+            background: rgba(0,255,100,0.2);
+            color: #00ff64;
+        }
+        
+        .status-badge.stopped {
+            background: rgba(255,0,0,0.2);
+            color: #ff6b6b;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,255,100,0.1);
+            font-size: 13px;
+        }
+        
+        .stat-label {
+            color: #888;
+        }
+        
+        .stat-value {
+            color: #00ff64;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Crypto Trading Dashboard - Kraken</h1>
+            <div class="status-indicator">
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span>System: <strong>Running</strong></span>
+                </div>
+                <div class="status-item">
+                    Balance: <strong id="balance">$0.00</strong>
+                </div>
+            </div>
+        </header>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Profit</div>
+                <div class="metric-value" id="total-profit">$6412.00</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Active Bots</div>
+                <div class="metric-value" id="active-bots">0/5</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Trades</div>
+                <div class="metric-value" id="total-trades">827</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Win Rate</div>
+                <div class="metric-value" id="win-rate">82.1%</div>
+            </div>
+        </div>
+        
+        <div class="emergency-section">
+            <h2 style="margin-bottom: 15px; color: #ff6b6b;">⚠️ EMERGENCY STOP</h2>
+            <button class="emergency-btn" onclick="emergencyStop()">🛑 CLOSE ALL POSITIONS</button>
+        </div>
+        
+        <div>
+            <h2 class="section-title">🤖 Select Trading Bot</h2>
+            <div class="bot-selector">
+                <div class="bot-option active" onclick="selectBot('sepf')">
+                    <div class="bot-name">Bot #1: SEPF</div>
+                    <div class="bot-description">Smart Entry Point Finder</div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">76% Win Rate</div>
+                </div>
+                <div class="bot-option" onclick="selectBot('tfm')">
+                    <div class="bot-name">Bot #2: TFM</div>
+                    <div class="bot-description">Trend Following Momentum</div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">67% Win Rate</div>
+                </div>
+                <div class="bot-option" onclick="selectBot('mrb')">
+                    <div class="bot-name">Bot #3: MRB</div>
+                    <div class="bot-description">Mean Reversion Bounce</div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">72% Win Rate</div>
+                </div>
+                <div class="bot-option" onclick="selectBot('bms')">
+                    <div class="bot-name">Bot #4: BMS</div>
+                    <div class="bot-description">Breakout Momentum Surge</div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">62% Win Rate</div>
+                </div>
+                <div class="bot-option" onclick="selectBot('sst')">
+                    <div class="bot-name">Bot #5: SST</div>
+                    <div class="bot-description">Smart Swing Trader</div>
+                    <div style="font-size: 11px; color: #666; margin-top: 5px;">72% Win Rate</div>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <h2 class="section-title">⚙️ Bot Configuration</h2>
+            <div class="bot-config">
+                <div class="config-card">
+                    <div class="config-title">Capital Allocation</div>
+                    <div class="config-item">
+                        <label class="config-label">Starting Capital ($)</label>
+                        <div class="config-value">
+                            <input type="range" id="capital" min="10" max="500" value="50" onchange="updateConfig()">
+                            <span id="capital-value">$50</span>
+                        </div>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">Position Size (%)</label>
+                        <div class="config-value">
+                            <input type="range" id="position-size" min="10" max="100" value="50" onchange="updateConfig()">
+                            <span id="position-size-value">50%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="config-card">
+                    <div class="config-title">Risk Management</div>
+                    <div class="config-item">
+                        <label class="config-label">Stop Loss (%)</label>
+                        <div class="config-value">
+                            <input type="range" id="stop-loss" min="0.5" max="10" step="0.5" value="2" onchange="updateConfig()">
+                            <span id="stop-loss-value">2%</span>
+                        </div>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">Take Profit (%)</label>
+                        <div class="config-value">
+                            <input type="range" id="take-profit" min="1" max="20" value="8" onchange="updateConfig()">
+                            <span id="take-profit-value">8%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="config-card">
+                    <div class="config-title">Aggressiveness</div>
+                    <div class="config-item">
+                        <label class="config-label">Trading Aggressiveness (1-10)</label>
+                        <div class="config-value">
+                            <input type="range" id="aggressiveness" min="1" max="10" value="5" onchange="updateConfig()">
+                            <span id="aggressiveness-value">5/10</span>
+                        </div>
+                    </div>
+                    <div class="config-item">
+                        <label class="config-label">Daily Loss Limit (%)</label>
+                        <div class="config-value">
+                            <input type="range" id="daily-loss" min="1" max="10" value="3" onchange="updateConfig()">
+                            <span id="daily-loss-value">3%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <h2 class="section-title">🎮 Bot Controls</h2>
+            <div class="button-group">
+                <button class="btn btn-start" onclick="startBot()">▶ START BOT</button>
+                <button class="btn btn-stop" onclick="stopBot()">⏸ STOP BOT</button>
+                <button class="btn btn-reset" onclick="resetBot()">🔄 RESET TO DEFAULTS</button>
+            </div>
+        </div>
+        
+        <div>
+            <h2 class="section-title" style="margin-top: 40px;">📊 Bot Status & Performance</h2>
+            <div class="bot-status">
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="bot-title">Bot #1: SEPF</div>
+                        <div class="status-badge running">RUNNING</div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Win Rate</span>
+                        <span class="stat-value">76.0%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Profit</span>
+                        <span class="stat-value">$1,245.50</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Trades</span>
+                        <span class="stat-value">156</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Position Size</span>
+                        <span class="stat-value">50%</span>
+                    </div>
+                </div>
+                
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="bot-title">Bot #2: TFM</div>
+                        <div class="status-badge stopped">STOPPED</div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Win Rate</span>
+                        <span class="stat-value">67.0%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Profit</span>
+                        <span class="stat-value">$892.30</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Trades</span>
+                        <span class="stat-value">98</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Position Size</span>
+                        <span class="stat-value">40%</span>
+                    </div>
+                </div>
+                
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="bot-title">Bot #3: MRB</div>
+                        <div class="status-badge stopped">STOPPED</div>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Win Rate</span>
+                        <span class="stat-value">72.0%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Profit</span>
+                        <span class="stat-value">$756.20</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Trades</span>
+                        <span class="stat-value">124</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Position Size</span>
+                        <span class="stat-value">45%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentBot = 'sepf';
+        
+        function selectBot(botId) {
+            currentBot = botId;
+            document.querySelectorAll('.bot-option').forEach(el => el.classList.remove('active'));
+            event.target.closest('.bot-option').classList.add('active');
+            console.log('Selected bot:', botId);
+        }
+        
+        function updateConfig() {
+            document.getElementById('capital-value').textContent = '$' + document.getElementById('capital').value;
+            document.getElementById('position-size-value').textContent = document.getElementById('position-size').value + '%';
+            document.getElementById('stop-loss-value').textContent = document.getElementById('stop-loss').value + '%';
+            document.getElementById('take-profit-value').textContent = document.getElementById('take-profit').value + '%';
+            document.getElementById('aggressiveness-value').textContent = document.getElementById('aggressiveness').value + '/10';
+            document.getElementById('daily-loss-value').textContent = document.getElementById('daily-loss').value + '%';
+        }
+        
+        function startBot() {
+            const config = {
+                bot: currentBot,
+                capital: document.getElementById('capital').value,
+                position_size: document.getElementById('position-size').value,
+                stop_loss: document.getElementById('stop-loss').value,
+                take_profit: document.getElementById('take-profit').value,
+                aggressiveness: document.getElementById('aggressiveness').value,
+                daily_loss_limit: document.getElementById('daily-loss').value
+            };
+            console.log('Starting bot with config:', config);
+            alert(`Starting ${currentBot.toUpperCase()} with $${config.capital} capital`);
+        }
+        
+        function stopBot() {
+            console.log('Stopping bot:', currentBot);
+            alert(`Stopping ${currentBot.toUpperCase()}`);
+        }
+        
+        function resetBot() {
+            document.getElementById('capital').value = 50;
+            document.getElementById('position-size').value = 50;
+            document.getElementById('stop-loss').value = 2;
+            document.getElementById('take-profit').value = 8;
+            document.getElementById('aggressiveness').value = 5;
+            document.getElementById('daily-loss').value = 3;
+            updateConfig();
+            console.log('Reset to defaults');
+        }
+        
+        function emergencyStop() {
+            if (confirm('Are you sure? This will close ALL positions immediately!')) {
+                console.log('Emergency stop activated');
+                alert('🛑 All positions closed!');
+            }
+        }
+        
+        // Initialize
+        updateConfig();
+    </script>
+</body>
+</html>
