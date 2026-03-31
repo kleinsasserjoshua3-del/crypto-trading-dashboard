@@ -22,7 +22,7 @@ class Config:
     KRAKEN_PRIVATE_KEY = os.environ.get('KRAKEN_PRIVATE_KEY', '')
     
     # ========== TRADING PARAMETERS ==========
-    INITIAL_CAPITAL = float(os.environ.get('INITIAL_CAPITAL', 50.0))
+    INITIAL_CAPITAL = float(os.environ.get('INITIAL_CAPITAL', 30.0))
     
     # Risk management
     DAILY_LOSS_LIMIT_PCT = 5.0  # 5% of capital
@@ -38,26 +38,26 @@ class Config:
     # ========== BOT CONFIGURATION ==========
     
     # Grid Trader
-    GRID_TRADER_POSITION_SIZE = 0.30
+    GRID_TRADER_POSITION_SIZE = 0.25
     GRID_TRADER_LEVELS = 5
     GRID_TRADER_PROFIT_PER_LEVEL = 2.0
     GRID_TRADER_STOP_LOSS = -3.0
     GRID_TRADER_TAKE_PROFIT = 2.0
     
     # Momentum Tracker
-    MOMENTUM_POSITION_SIZE = 0.20
+    MOMENTUM_POSITION_SIZE = 0.18
     MOMENTUM_TREND_THRESHOLD = 1.5
     MOMENTUM_STOP_LOSS = -3.0
     MOMENTUM_TAKE_PROFIT = 8.0
     
     # DCA Accumulator
-    DCA_POSITION_SIZE = 0.16
+    DCA_POSITION_SIZE = 0.20
     DCA_BUY_INTERVAL_HOURS = 4
     DCA_STOP_LOSS = -5.0
     DCA_TAKE_PROFIT = 3.0
     
     # Scalp Master
-    SCALP_POSITION_SIZE = 0.20
+    SCALP_POSITION_SIZE = 0.18
     SCALP_TRADE_DURATION_MIN = 15
     SCALP_PROFIT_PER_TRADE = 0.5
     SCALP_STOP_LOSS = -0.5
@@ -65,7 +65,7 @@ class Config:
     SCALP_MAX_TRADES_PER_HOUR = 5
     
     # Arbitrage Finder
-    ARB_POSITION_SIZE = 0.14
+    ARB_POSITION_SIZE = 0.19
     ARB_MIN_SPREAD = 0.5
     ARB_STOP_LOSS = -1.0
     ARB_TAKE_PROFIT = 0.5
